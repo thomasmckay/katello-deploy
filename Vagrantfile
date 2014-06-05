@@ -2,6 +2,26 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  config.vm.define "rhel6" do |centos|
+    rhel6.vm.box = "rhel6"
+    rhel6.vm.box_url = "http://radon.usersys.redhat.com/templates/boxes/rhel65.box"
+    rhel6.vm.hostname = "rhel6.installer"
+
+    rhel6.vm.provision :shell do |shell|
+      shell.inline = 'yum -y install ruby && cd /vagrant && ./setup.rb rhel6'
+    end
+
+    rhel6.vm.provider :libvirt do |v, virt|
+      virt.vm.box_url = 'http://radon.usersys.redhat.com/templates/boxes/rhel65.box'
+      virt.vm.synced_folder ".", "/vagrant", type: "rsync"
+    end
+
+    rhel6.vm.provider :virtualbox do |prov, config|
+      config.vm.network :forwarded_port, guest: 80, host: 8080
+      config.vm.network :forwarded_port, guest: 443, host: 4433
+    end
+  end
+
   config.vm.define "centos" do |centos|
     centos.vm.box = "centos64"
     centos.vm.box_url = "http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20130731.box"
